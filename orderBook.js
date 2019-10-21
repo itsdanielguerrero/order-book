@@ -21,8 +21,6 @@ function handleQuantityMatch (quantityMatch, existingBook) {
       }
     }
     return existingBook
-  } else {
-    return []
   }
 }
 
@@ -44,8 +42,6 @@ function handleGreaterThan (quantityGreater, existingBook, incomingOrder) {
       }
     }
     return existingBook
-  } else {
-    return []
   }
 }
 
@@ -69,9 +65,29 @@ function handlePartialFulfillment (quantityLess, existingBook, incomingOrder) {
       }
     }
     return existingBook
-  } else {
-    return []
   }
+}
+
+//This function gets order that might can work for a beneficial mismatch fullfillment
+function getBenefitMatches (existingBook, incomingOrder){
+  return existingBook.filter((currentItem) => {
+    const {type, quantity, price} = currentItem
+    return type !== incomingOrder.type && price > incomingOrder.price 
+        && price <= incomingOrder.price + 100 && quantity === incomingOrder.quantity
+  })
+}
+
+//This function will handle a mismatch order that is beneficial for both parties
+function letsMakeADeal (benefitMatch, existingBook) {
+  if(benefitMatch.length > 0) {
+    for (var i = 0; i < existingBook.length; i++){
+      if (existingBook[i].quantity === benefitMatch[0].quantity){
+        existingBook.splice(i, 1)
+        i = existingBook.length
+      }
+    }
+    return existingBook
+  } 
 }
 
 //This function gets order that match in price but do not match in type
@@ -82,12 +98,19 @@ function getMatchingOrders (existingBook, incomingOrder) {
   }) 
 }
 
+//Main Function
 function reconcileOrder(existingBook, incomingOrder) {
   //get orders from existingBook that match in price and correspond in type
   let matchingOrders = getMatchingOrders(existingBook, incomingOrder)
-  if (matchingOrders.length === 0){ //if this is an empty array then add incoming order
+  let benefitMatch = getBenefitMatches(existingBook, incomingOrder)
+  if (matchingOrders.length === 0 && benefitMatch.length === 0){ //if this is an empty array then add incoming order
     return existingBook.concat(incomingOrder)
   } 
+  
+  if(benefitMatch.length > 0){
+    return letsMakeADeal(benefitMatch, existingBook)
+  }
+  
   
   let quantityMatch = getQuantityMatching (matchingOrders, incomingOrder)
   if (quantityMatch.length > 0){ //case : where the quantities match exactly
