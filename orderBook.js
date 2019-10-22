@@ -73,7 +73,7 @@ function getBenefitMatches (existingBook, incomingOrder){
   return existingBook.filter((currentItem) => {
     const {type, quantity, price} = currentItem
     return type !== incomingOrder.type && price > incomingOrder.price 
-        && price >= incomingOrder.price && quantity === incomingOrder.quantity
+        && price >= incomingOrder.price + 100 && quantity === incomingOrder.quantity
   })
 }
 
