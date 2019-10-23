@@ -16,7 +16,7 @@ function handleQuantityMatch (quantityMatch, existingBook) {
   if(quantityMatch.length > 0) {
     for (var i = 0; i < existingBook.length; i++){
       if (existingBook[i].quantity === quantityMatch[0].quantity){
-        existingBook.splice(i, 1)
+        existingBook.splice(i, 1) //remove the matching order from existing book
         i = existingBook.length
       }
     }
@@ -102,28 +102,29 @@ function getMatchingOrders (existingBook, incomingOrder) {
 function reconcileOrder(existingBook, incomingOrder) {
   //get orders from existingBook that match in price and correspond in type
   let matchingOrders = getMatchingOrders(existingBook, incomingOrder)
-  let benefitMatch = getBenefitMatches(existingBook, incomingOrder)
-  if (matchingOrders.length === 0 && benefitMatch.length === 0){ //if this is an empty array then add incoming order
+  let benefitMatch = getBenefitMatches(existingBook, incomingOrder) //get orders that might for mismatch case
+  if (matchingOrders.length === 0 && benefitMatch.length === 0){ //if both are empty arrays then add incoming order
     return existingBook.concat(incomingOrder)
   } 
-  
-  if(benefitMatch.length > 0){
+
+  // if there are orders that work for the mismatch case.
+  if(benefitMatch.length > 0){ //case : handle a mismatch that is beneficial for both parties 
     return letsMakeADeal(benefitMatch, existingBook)
   }
   
-  
+  //get matching orders from existingBook that have quantities that are equal
   let quantityMatch = getQuantityMatching (matchingOrders, incomingOrder)
   if (quantityMatch.length > 0){ //case : where the quantities match exactly
     return handleQuantityMatch (quantityMatch, existingBook)
   } 
   
-  //get orders from existingBook that have quantities that are greater than
+  //get matching orders from existingBook that have quantities that are greater than
   let quantityGreater = getQuantityGreaterThan (matchingOrders, incomingOrder)
   if (quantityGreater.length > 0) {//case : where we can fulfill incomingOrder but there is a remainder
     return handleGreaterThan (quantityGreater, existingBook, incomingOrder)
   } 
   
-  //get orders from existingBook that have quantities that are less than
+  //get matching orders from existingBook that have quantities that are less than
   let quantityLess = partialFulfillment (matchingOrders, incomingOrder)
   if (quantityLess.length > 0) { //case : where we can only partially fulfill incomingOrder
     return handlePartialFulfillment(quantityLess, existingBook, incomingOrder)
